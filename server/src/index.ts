@@ -20,6 +20,9 @@ import { config } from './config.js';
 import { initializeDatabase, closePool, healthCheck } from './db/pool.js';
 import authRouter from './api/auth.js';
 import filesRouter from './api/files.js';
+import versionsRouter from './api/versions.js';
+import sharingRouter from './api/sharing.js';
+import statsRouter from './api/stats.js';
 
 const app = express();
 
@@ -69,6 +72,9 @@ app.get('/api/health', async (_req, res) => {
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/files', filesRouter);
+app.use('/api/versions', versionsRouter);
+app.use('/api/sharing', sharingRouter);
+app.use('/api/stats', statsRouter);
 
 // 404 handler
 app.use((_req, res) => {

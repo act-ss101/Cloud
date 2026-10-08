@@ -137,6 +137,36 @@ const migrations: Migration[] = [
         ON file_versions(file_id, version);
     `,
   },
+  {
+    version: 2,
+    name: 'add_share_links',
+    up: `
+      -- Share links table
+      CREATE TABLE IF NOT EXISTS share_links (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        token_hash VARCHAR(128) UNIQUE NOT NULL,
+        resource_id UUID NOT NULL,
+        resource_type VARCHAR(20) NOT NULL CHECK (resource_type IN ('file', 'folder')),
+        owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        password_hash VARCHAR(255),
+        expires_at TIMESTAMPTZ,
+        permission VARCHAR(20) NOT NULL DEFAULT 'view' CHECK (permission IN ('view', 'download', 'upload')),
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        view_count INTEGER NOT NULL DEFAULT 0,
+        download_count INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      -- Indexes
+      CREATE INDEX IF NOT EXISTS idx_share_links_owner ON share_links(owner_id);
+      CREATE INDEX IF NOT EXISTS idx_share_links_tenant ON share_links(tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_share_links_token ON share_links(token_hash);
+      CREATE INDEX IF NOT EXISTS idx_share_links_active ON share_links(is_active);
+      CREATE INDEX IF NOT EXISTS idx_share_links_expires ON share_links(expires_at);
+    `,
+  },
 ];
 
 export async function runMigrations(pool: Pool): Promise<void> {
