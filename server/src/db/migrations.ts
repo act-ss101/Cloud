@@ -19,39 +19,41 @@ const migrations: Migration[] = [
     version: 1,
     name: 'initial_schema',
     up: `
+      -- Tenants table (for future multi-tenant support)
+      -- Created first because users references it
+      CREATE TABLE IF NOT EXISTS tenants (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(255) NOT NULL,
+        owner_id UUID,
+        storage_quota_bytes BIGINT NOT NULL DEFAULT 10737418240, -- 10GB default
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
       -- Users table (multi-tenant ready)
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         display_name VARCHAR(100) NOT NULL,
-        tenant_id UUID,
+        tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
         role VARCHAR(20) NOT NULL DEFAULT 'member',
         is_active BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      -- Tenants table (for future multi-tenant support)
-      CREATE TABLE IF NOT EXISTS tenants (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        name VARCHAR(255) NOT NULL,
-        owner_id UUID REFERENCES users(id),
-        storage_quota_bytes BIGINT NOT NULL DEFAULT 10737418240, -- 10GB default
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
+      -- Add tenant owner FK after users table exists
+      ALTER TABLE tenants ADD CONSTRAINT fk_tenant_owner 
+        FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE SET NULL;
 
-      -- Add foreign key after tenants table exists
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id);
-
-      -- Folders table
+      -- Folders table (parent_id uses SET NULL to prevent accidental cascade deletion)
       CREATE TABLE IF NOT EXISTS folders (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(255) NOT NULL,
-        parent_id UUID REFERENCES folders(id) ON DELETE CASCADE,
-        owner_id UUID NOT NULL REFERENCES users(id),
-        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        parent_id UUID REFERENCES folders(id) ON DELETE SET NULL,
+        owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
@@ -60,9 +62,9 @@ const migrations: Migration[] = [
       CREATE TABLE IF NOT EXISTS files (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(500) NOT NULL,
-        folder_id UUID REFERENCES folders(id) ON DELETE CASCADE,
-        owner_id UUID NOT NULL REFERENCES users(id),
-        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        folder_id UUID REFERENCES folders(id) ON DELETE SET NULL,
+        owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
         mime_type VARCHAR(255),
         size_bytes BIGINT NOT NULL DEFAULT 0,
         sha256_hash VARCHAR(64),
@@ -70,7 +72,7 @@ const migrations: Migration[] = [
         storage_pool VARCHAR(50) NOT NULL DEFAULT 'local',
         is_trashed BOOLEAN NOT NULL DEFAULT false,
         trashed_at TIMESTAMPTZ,
-        original_folder_id UUID REFERENCES folders(id),
+        original_folder_id UUID REFERENCES folders(id) ON DELETE SET NULL,
         version INTEGER NOT NULL DEFAULT 1,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

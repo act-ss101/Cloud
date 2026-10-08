@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Activity,
   Zap,
+  Info,
 } from 'lucide-react';
 import type { Page } from '../App';
 
@@ -25,11 +26,11 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Status Banner */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-        <CheckCircle2 size={20} className="text-emerald-400" />
+      <div className="flex items-center gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+        <AlertCircle size={20} className="text-amber-400" />
         <div>
-          <p className="text-sm font-medium text-emerald-300">All systems healthy</p>
-          <p className="text-xs text-emerald-400/70">Last sync: 2 minutes ago · 3 storage pools active</p>
+          <p className="text-sm font-medium text-amber-300">Demo Mode — Backend Not Connected</p>
+          <p className="text-xs text-amber-400/70">Data shown below is illustrative. Connect backend API on port 4000 for live data.</p>
         </div>
       </div>
 
@@ -74,7 +75,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         {/* Recent Files */}
         <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-            <h2 className="text-sm font-semibold text-slate-200">Recent Files</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-slate-200">Recent Files</h2>
+              <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded border border-amber-500/20">MOCK</span>
+            </div>
             <button
               onClick={() => onNavigate('files')}
               className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
@@ -132,7 +136,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         <div className="space-y-6">
           {/* Backup Status */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <h2 className="text-sm font-semibold text-slate-200 mb-4">Backup Status</h2>
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-sm font-semibold text-slate-200">Backup Status</h2>
+              <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded border border-amber-500/20">MOCK</span>
+            </div>
             <div className="space-y-4">
               <BackupItem
                 name="Daily Snapshot"
@@ -163,7 +170,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
           {/* Storage Pools */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <h2 className="text-sm font-semibold text-slate-200 mb-4">Storage Pools</h2>
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-sm font-semibold text-slate-200">Storage Pools</h2>
+              <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded border border-amber-500/20">MOCK</span>
+            </div>
             <div className="space-y-3">
               <PoolItem name="Pool A — Primary" usage={65} status="healthy" />
               <PoolItem name="Pool B — Backup" usage={42} status="healthy" />
@@ -194,7 +204,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* Activity Timeline */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-slate-200">Activity Timeline</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-slate-200">Activity Timeline</h2>
+            <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded border border-amber-500/20">MOCK</span>
+          </div>
           <div className="flex items-center gap-2">
             <TrendingUp size={14} className="text-emerald-400" />
             <span className="text-xs text-slate-400">Last 24 hours</span>

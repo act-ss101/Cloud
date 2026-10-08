@@ -88,8 +88,11 @@ export default function MyFiles() {
   const [error, setError] = useState<string | null>(null);
   const [apiAvailable, setApiAvailable] = useState<boolean | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadFileName, setUploadFileName] = useState('');
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const loadFiles = useCallback(async () => {
     setLoading(true);
@@ -143,23 +146,34 @@ export default function MyFiles() {
 
     setUploading(true);
     setError(null);
+    setActionError(null);
+
+    const files = Array.from(fileList);
+    const totalFiles = files.length;
 
     try {
-      for (const file of Array.from(fileList)) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setUploadFileName(file.name);
+        setUploadProgress(Math.round((i / totalFiles) * 100));
         await apiClient.uploadFile(file, currentFolderId || undefined);
       }
+      setUploadProgress(100);
       await loadFiles();
     } catch (err: any) {
       const apiErr = err as ApiError;
-      setError(apiErr.message || 'Upload failed');
+      setError(`Upload failed: ${apiErr.message || 'Unknown error'}`);
     } finally {
       setUploading(false);
+      setUploadProgress(0);
+      setUploadFileName('');
       e.target.value = '';
     }
   };
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;
+    setActionError(null);
 
     try {
       await apiClient.createFolder(newFolderName.trim(), currentFolderId || undefined);
@@ -168,7 +182,7 @@ export default function MyFiles() {
       await loadFiles();
     } catch (err: any) {
       const apiErr = err as ApiError;
-      setError(apiErr.message || 'Failed to create folder');
+      setActionError(`Create folder failed: ${apiErr.message || 'Unknown error'}`);
     }
   };
 
@@ -188,12 +202,13 @@ export default function MyFiles() {
   };
 
   const handleDelete = async (id: string, type: 'file' | 'folder') => {
+    setActionError(null);
     try {
       await apiClient.deleteToTrash(id, type);
       await loadFiles();
     } catch (err: any) {
       const apiErr = err as ApiError;
-      setError(apiErr.message || 'Failed to delete');
+      setActionError(`Delete failed: ${apiErr.message || 'Unknown error'}`);
     }
   };
 
@@ -273,6 +288,25 @@ export default function MyFiles() {
         </div>
       )}
 
+      {/* Upload Progress */}
+      {uploading && (
+        <div className="px-4 py-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Loader2 size={16} className="text-blue-400 animate-spin" />
+              <span className="text-sm text-blue-300">Uploading: {uploadFileName}</span>
+            </div>
+            <span className="text-xs text-blue-400">{uploadProgress}%</span>
+          </div>
+          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-500 rounded-full transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Error State */}
       {error && (
         <div className="flex items-start gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
@@ -286,6 +320,20 @@ export default function MyFiles() {
             className="flex items-center gap-1 px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
           >
             <RefreshCw size={12} /> Retry
+          </button>
+        </div>
+      )}
+
+      {/* Action Error (non-blocking) */}
+      {actionError && (
+        <div className="flex items-center gap-3 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <AlertCircle size={16} className="text-amber-400 flex-shrink-0" />
+          <p className="text-xs text-amber-300 flex-1">{actionError}</p>
+          <button
+            onClick={() => setActionError(null)}
+            className="text-xs text-amber-400 hover:text-amber-300"
+          >
+            Dismiss
           </button>
         </div>
       )}
