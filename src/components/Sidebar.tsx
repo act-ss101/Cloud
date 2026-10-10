@@ -9,6 +9,7 @@ import {
   Cloud,
   Settings,
   HelpCircle,
+  Trash2,
 } from 'lucide-react';
 import type { Page } from '../App';
 
@@ -26,6 +27,7 @@ const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'shared', label: 'Shared', icon: <Share2 size={20} /> },
   { id: 'versions', label: 'Versions', icon: <History size={20} /> },
   { id: 'storage', label: 'Storage', icon: <HardDrive size={20} /> },
+  { id: 'trash', label: 'Trash', icon: <Trash2 size={20} /> },
 ];
 
 export default function Sidebar({ currentPage, onNavigate, isOpen, onToggle }: SidebarProps) {

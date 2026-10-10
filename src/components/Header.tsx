@@ -1,10 +1,13 @@
-import { Menu, Bell, Search, Upload, User } from 'lucide-react';
+import { Menu, Bell, Search, Upload, User, LogOut, Cloud } from 'lucide-react';
+import type { User as UserType } from '../lib/api';
 
 interface HeaderProps {
   onMenuToggle: () => void;
+  user?: UserType | null;
+  onLogout?: () => void;
 }
 
-export default function Header({ onMenuToggle }: HeaderProps) {
+export default function Header({ onMenuToggle, user, onLogout }: HeaderProps) {
   return (
     <header className="h-16 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
@@ -39,16 +42,45 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full"></span>
         </button>
 
-        {/* User Avatar */}
-        <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-800 transition-colors">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-            <User size={16} className="text-white" />
+        {/* User Avatar & Menu */}
+        <div className="relative group">
+          <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-800 transition-colors">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <User size={16} className="text-white" />
+            </div>
+            <div className="hidden md:block text-left">
+              <p className="text-sm font-medium text-slate-200">
+                {user?.displayName || 'User'}
+              </p>
+              <p className="text-[10px] text-slate-500">
+                {user?.role || 'Member'}
+              </p>
+            </div>
+          </button>
+
+          {/* Dropdown Menu */}
+          <div className="absolute right-0 top-full mt-2 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div className="p-3 border-b border-slate-800">
+              <p className="text-sm font-medium text-white truncate">{user?.displayName || 'User'}</p>
+              <p className="text-xs text-slate-500 truncate">{user?.email || 'user@example.com'}</p>
+            </div>
+            <div className="p-2">
+              <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 rounded-lg transition-colors">
+                <Cloud size={16} />
+                My Account
+              </button>
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              )}
+            </div>
           </div>
-          <div className="hidden md:block text-left">
-            <p className="text-sm font-medium text-slate-200">Admin</p>
-            <p className="text-[10px] text-slate-500">Personal Plan</p>
-          </div>
-        </button>
+        </div>
       </div>
     </header>
   );
